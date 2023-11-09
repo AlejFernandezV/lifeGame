@@ -155,7 +155,6 @@ class lifeGame:
             if(self.speed > 1):
                 self.speed = self.speed - 1  # Limita la velocidad mínima a 1  
         
-
     def saveAutomata(self):
         # Creamos un diccionario con la información del automata
         automata_dict = {

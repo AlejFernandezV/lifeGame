@@ -1,13 +1,18 @@
 import pygame
-import numpy as np
+import json
+import os
 import time
+import numpy as np
+from tkinter import *
+from tkinter.filedialog import askopenfilename
+from tkinter import messagebox as MessageBox
 from button import Button
 
 class lifeGame:
     def __init__(self):
         self.screen = None
         self.width = 600 #Ancho
-        self.height = 720 #Alto
+        self.height = 700 #Alto
         self.bg = '#e2d397' #Color fondo
         self.nxC = 60 #Tamaño del microuniverso 
         self.nyC = 60 #Tamaño del microuniverso
@@ -18,7 +23,12 @@ class lifeGame:
         self.newGameState = None
         self.btn_play = None
         self.btn_reset = None
+        self.btn_charge_automata = None
+        self.btn_more_velocity = None
+        self.btn_minuse_velocity = None
         self.btn_play_pressed = None
+        self.btn_save_pressed = None
+        self.btn_charge_pressed = None
         self.pauseExect = None
    
     def setupWindow(self):
@@ -28,15 +38,21 @@ class lifeGame:
         pygame.display.set_caption("El juego de la vida By AlejandroFernandez&JhossefConstain")
         self.gameState = np.zeros((self.nxC, self.nyC)) #Estado de las celulas, 1=Viva / 0=Muerta
         self.newGameState = np.copy(self.gameState)
-        self.btn_play = Button(20,620,"Play")
-        self.btn_reset = Button(380,620,"Reset")
+        self.btn_play = Button(10,620,"Play", 80,50,6)
+        self.btn_more_velocity = Button(200, 620, "+", 50, 50, 6)
+        self.btn_minuse_velocity = Button(260, 620, "-", 50, 50, 6)
+        self.btn_reset = Button(320,620,"Reset", 80,50,6)
+        self.btn_charge_automata = Button(410,620,"Charge", 80,50,6)
+        self.btn_save_automata = Button(500,620,"Save", 80,50,6)
         self.btn_play_pressed = False
+        self.btn_save_pressed = False
+        self.btn_charge_pressed = False
         self.pauseExect = False 
         
     def rules(self):
         for y in range(0, self.nxC):
             for x in range (0, self.nyC):
-                if not self.pauseExect:
+                if self.pauseExect == False:
                     # Calculamos el número de vecinos cercanos.
                     n_neigh =   self.gameState[(x - 1) % self.nxC, (y - 1)  % self.nyC] + \
                             self.gameState[(x)     % self.nxC, (y - 1)  % self.nyC] + \
@@ -88,34 +104,97 @@ class lifeGame:
         # Actualizar los botones en cada iteración
         self.btn_play.update()
         self.btn_reset.update()
+        self.btn_more_velocity.update()
+        self.btn_minuse_velocity.update()
+        self.btn_charge_automata.update()
+        self.btn_save_automata.update() 
+        
         # Dibujar botón reset
         self.btn_reset.draw(self.screen)
         # Botones para ajustar la velocidad
         font = pygame.font.Font(None, 24)
-        # Botón de aumento de velocidad
-        self.plus_button = Button(250, 620, "+", 50, 50, 6)
-        self.plus_button.draw(self.screen)
-        # Botón de reducción de velocidad
-        self.minus_button = Button(320, 620, "-", 50, 50, 6)
-        self.minus_button.draw(self.screen)
+        # Dibujar botón de aumento de velocidad
+        self.btn_more_velocity.draw(self.screen)
+        # Dibujar botón de reducción de velocidad
+        self.btn_minuse_velocity.draw(self.screen)
+        # Dibujar botón para cargar automata
+        self.btn_charge_automata.draw(self.screen)
+        # Dibujar botón dpara guardar automata
+        self.btn_save_automata.draw(self.screen)
+        
         # Mostrar la velocidad actual
-        speed_text = font.render(f"Speed: {self.speed}", True, "#ffffff")
-        self.screen.blit(speed_text, (150, 620))
+        speed_text = font.render(f"Speed: {self.speed}", True, "#481800")
+        self.screen.blit(speed_text, (110, 620))
+        
         # Dibujar el botón play solo si no ha sido presionado
         if not self.btn_play_pressed:
             self.btn_play.draw(self.screen)
+            
         # Verificar si el botón ha sido clickeado
         if self.btn_play.clicked:
-            self.btn_play_pressed = True  # Establecer el estado del botón como presionado            
+            self.btn_play_pressed = True  # Establecer el estado del botón como presionado
+            
         if self.btn_reset.clicked:
             self.gameState = np.zeros((self.nxC, self.nyC))
             self.newGameState = np.copy(self.gameState)
             self.btn_play_pressed = False
+            
+        if self.btn_charge_automata.clicked:
+            self.pauseExect = True
+            self.btn_charge_pressed = True
+            
+        if self.btn_save_automata.clicked:
+            self.pauseExect = True
+            self.btn_save_pressed = True
+            
         # Actualizar el valor de velocidad según los botones presionados
-        if self.plus_button.clicked:
-            self.speed = min(self.speed + 1, 60)  # Limita la velocidad máxima a 60
-        elif self.minus_button.clicked:
-            self.speed = max(self.speed - 1, 1)  # Limita la velocidad mínima a 1  
+        if self.btn_more_velocity.clicked:
+            if(self.speed < 20):
+                self.speed = self.speed + 1 # Limita la velocidad máxima a 60
+        if self.btn_minuse_velocity.clicked:
+            if(self.speed > 1):
+                self.speed = self.speed - 1  # Limita la velocidad mínima a 1  
+        
+
+    def saveAutomata(self):
+        # Creamos un diccionario con la información del automata
+        automata_dict = {
+            "gameState": self.gameState.tolist()
+        }
+        # Obtenemos la ruta de la carpeta
+        carpeta = os.path.join(os.path.expanduser("./"), "saveAutomatas")
+        
+        # Creamos el nombre del archivo
+        filename = f"automata_{time.strftime('%Y-%m-%d-%H-%M-%S')}.json"
+        
+        # Creamos la carpeta si no existe
+        if not os.path.exists(carpeta):
+            os.mkdir(carpeta)
+        
+        # Guardamos el diccionario en el archivo JSON
+        with open(os.path.join(carpeta, filename), "w") as f:
+            json.dump(automata_dict, f)
+        
+        MessageBox.showinfo("Alerta", "Automata guardado correctamente")    
+        self.btn_save_pressed = False 
+        
+    def chargeAutomata(self):
+        # Abrimos una ventana del explorador de archivos
+        filename = askopenfilename(title="Abrir archivo", filetypes=[("Archivos JSON", "*.json")], initialdir="./saveAutomatas")
+        
+        if filename:
+            # Abrimos el archivo JSON
+            with open(filename, "r") as f:
+                data = json.load(f)
+            
+            # Actualizamos la información del automata
+            self.newGameState = np.copy(data["gameState"])
+            self.btn_charge_pressed = False
+            
+            MessageBox.showinfo("Alerta", "Automata cargado correctamente")
+        else:
+            self.btn_charge_pressed = False
+            pass
 
     def runGame(self):
         # Se setea la ventana del juego
@@ -142,7 +221,12 @@ class lifeGame:
                     running = False                
             # Si el botón play está presionado empezarán a ejecutarse las reglas de las células
             if self.btn_play_pressed:
-                self.rules()                   
+                self.pauseExect = False
+                self.rules()    
+            if self.btn_save_pressed:
+                self.saveAutomata()  
+            if self.btn_charge_pressed:
+                self.chargeAutomata()                  
             # Actualizamos el estado del juego.
             self.gameState = np.copy(self.newGameState)
             # Mostramos el resultado

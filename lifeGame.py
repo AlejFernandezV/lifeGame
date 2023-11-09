@@ -13,7 +13,7 @@ class lifeGame:
         self.screen = None
         self.width = 600 #Ancho
         self.height = 700 #Alto
-        self.bg = '#e2d397' #Color fondo
+        self.bg = '#FFFFFF' #Color fondo
         self.nxC = 60 #Tamaño del microuniverso 
         self.nyC = 60 #Tamaño del microuniverso
         self.dimCW = 10 #Dimensiones de anchura para cada celda
@@ -93,7 +93,7 @@ class lifeGame:
                     pygame.draw.polygon(self.screen, '#481800', poly, 1)
                 # Si la celda está "viva" pintamos un recuadro relleno de color
                 else:
-                    pygame.draw.polygon(self.screen, '#f07e13', poly, 0)
+                    pygame.draw.polygon(self.screen, '#00008B', poly, 0)
                     
     def setupGame(self):
         # Copiamos la matriz del estado anterior
@@ -123,7 +123,7 @@ class lifeGame:
         self.btn_save_automata.draw(self.screen)
         
         # Mostrar la velocidad actual
-        speed_text = font.render(f"Speed: {self.speed}", True, "#481800")
+        speed_text = font.render(f"Speed: {self.speed}", True, "#00008B")
         self.screen.blit(speed_text, (110, 620))
         
         # Dibujar el botón play solo si no ha sido presionado

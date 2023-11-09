@@ -37,7 +37,7 @@ class Button:
             self.hover = False
 
     def draw(self, display):
-        top_rect_color = "#A35833" if self.hover else "#481800"
+        top_rect_color = "#5580c0" if self.hover else "#00008B"
         if not self.pressed:
             # Si no pulsamos dibujamos todo en su posición original
             pg.draw.rect(display, "#1a232e", self.bottom_rect)
